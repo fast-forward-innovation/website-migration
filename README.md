@@ -21,9 +21,9 @@ migration-plan ─▶ migration-discovery ─▶ migration-architecture ─┐
 
 | Skill | Phase | What it does |
 |-------|-------|--------------|
-| `migration-plan` | `plan` | Detects source/target/access, scaffolds `migration/` + `manifest.json` + `plan.md`. |
-| `migration-discovery` | `discovery` | Inventories the **old** site → `discovery/inventory.json` + `report.md`. |
-| `migration-architecture` | `architecture` | Designs the **new** Next.js site, picks the content layer → `architecture.md`. |
+| `migration-plan` | `plan` | Captures source/architecture/access, code access, and hosting (Pantheon + base domain); scaffolds `migration/` + `manifest.json` + `plan.md`. |
+| `migration-discovery` | `discovery` | Inventories the **old** site (API/export **and** source code) → `discovery/inventory.json` + `report.md`. |
+| `migration-architecture` | `architecture` | Designs the **new** Next.js site, picks the content layer, reuses an existing headless frontend → `architecture.md`. |
 | `migration-export` | `export` | Extracts + normalizes content/assets → `export/content/*.json` + `export/assets/`. |
 | `migration-import` | `import` | Writes normalized content into the Next.js site → `import-report.md` + mapping. |
 | `migration-full` | `export` + `import` | Runs export then import in sequence, stopping on first failure. |
@@ -95,19 +95,57 @@ clearly if a prerequisite is missing.
 
 ## Source access
 
-Two access methods are supported (mix as needed per source):
+`migration-plan` captures how we can reach the old site. Methods combine freely.
+
+**Content access** (mix as needed per source):
 
 - **Live API / credentials** — WordPress REST + WPGraphQL, Drupal JSON:API, HubSpot CMS + CRM API.
 - **DB dump / native export** — SQL dump, Drupal migrate, WordPress WXR (eXtended RSS), HubSpot export.
 
+**Source-code access** (optional, but a high-value discovery input). The plan records whether the old
+site is **coupled** (the CMS renders pages via a theme) or **headless** (a decoupled frontend app
+consumes the CMS over an API), and captures code per role:
+
+- **`cms`** — backend content-type/field definitions, custom modules/plugins (+ theme/templates if
+  coupled).
+- **`frontend`** — the decoupled frontend app (headless only) and its framework (Next, Gatsby, Nuxt,
+  Vue, …). Often maps almost directly onto the new Next.js components.
+
+Each role can be a **local folder** or a **git repo** (cloned to `migration/_input/source-code/<role>`
+using your existing git credentials). `migration-discovery` scans whatever is present and records each
+finding's provenance (`api` / `export` / `cms-code` / `frontend-code`).
+
 Credentials are read from **environment variables** and only *referenced by name* in the manifest —
-secrets are never written to the plugin or to the `migration/` folder.
+secrets and tokens are never written to the plugin or to the `migration/` folder.
+
+## Hosting the new site
+
+The default host is **Pantheon**. `migration-plan` prompts for the **host provider** and the
+**production base domain**, and can provision sites with [Terminus](https://docs.pantheon.io/terminus):
+
+- The Next.js app is hosted as a Pantheon **Front-End Site**.
+- A **headless CMS backend** (WordPress/Drupal) can also run on Pantheon when the architecture picks
+  that content layer.
+- `migration-import` deploys to the Front-End Site and promotes `dev → test` (promotion to `live` is
+  confirmed first).
+
+Infrastructure-creating actions (`terminus site:create`, `domain:add`, `env:deploy ... live`) require
+explicit confirmation; recording hosting config in the manifest is the safe default. The Terminus
+machine token is read from an env var (name in the manifest, value never stored).
 
 ## Reference material
 
 Shared, source-agnostic reference docs live in `references/`:
 
-- `references/manifest-schema.md` — the `migration/manifest.json` contract.
+- `references/manifest-schema.md` — the `migration/manifest.json` contract (source, code access,
+  hosting, phases).
 - `references/normalized-content.md` — the canonical intermediate content schema.
 - `references/sources/{drupal,wordpress,hubspot}.md` — per-platform extraction notes.
 - `references/targets/nextjs.md` — Next.js routing, rendering, images, redirects, content layers.
+- `references/targets/pantheon.md` — Pantheon + Terminus: auth, provisioning, domains, deploy.
+
+## Testing
+
+Structural tests (deterministic) and a behavioral eval (model-in-the-loop, against an offline
+WordPress WXR fixture) live in `tests/`. See [`tests/README.md`](tests/README.md). CI runs the
+structural suite on every push/PR; the behavioral job runs when an `ANTHROPIC_API_KEY` secret is set.
