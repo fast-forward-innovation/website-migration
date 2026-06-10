@@ -37,7 +37,9 @@ image handling, and i18n.
    taxonomy index routes, and `generateStaticParams` sources. Preserve old paths where reasonable.
 4. **Define the redirect strategy** — how old URLs (and the existing redirects from discovery) will
    become Next.js redirects, and where they live (`next.config.js` vs. middleware if the count is
-   large).
+   large). Use `target.hosting.baseDomain` as the canonical production domain for canonical URLs and
+   absolute redirect targets. If the architecture confirms a headless CMS on Pantheon, note the
+   `target.hosting.cms` backend; otherwise ensure `target.hosting.cms` stays `null`.
 5. **Pick rendering modes** per route type (SSG default, ISR for frequently-published headless
    content, SSR only for genuinely dynamic pages flagged in discovery).
 6. **Plan images** (where assets land — `public/` vs. CMS/image host — and `next/image` usage) and

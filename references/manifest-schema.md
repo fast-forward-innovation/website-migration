@@ -47,7 +47,24 @@ another phase's recorded output paths.
     "platform": "nextjs",
     "appDir": "./",
     "contentLayer": null,
-    "contentLayerDecidedBy": null
+    "contentLayerDecidedBy": null,
+    "hosting": {
+      "provider": "pantheon",
+      "baseDomain": "www.acme.com",
+      "credentialEnvVars": ["PANTHEON_MACHINE_TOKEN"],
+      "frontend": {
+        "siteName": "acme-www",
+        "kind": "front-end-site",
+        "environments": ["dev", "test", "live"],
+        "provisioned": false
+      },
+      "cms": {
+        "siteName": "acme-cms",
+        "kind": "wordpress",
+        "environments": ["dev", "test", "live"],
+        "provisioned": false
+      }
+    }
   },
   "phases": {
     "plan":         { "status": "done",    "outputs": ["migration/plan.md"], "completedAt": "..." },
@@ -104,6 +121,19 @@ another phase's recorded output paths.
   specific CMS captured in `decisions`). `null` until architecture runs. **`migration-import` reads
   this** to decide how to write content.
 - **`contentLayerDecidedBy`** — `"architecture"` once chosen, for traceability.
+- **`hosting`** — where the new site runs. Defaults to Pantheon. See
+  `references/targets/pantheon.md` for the Terminus workflow.
+  - `provider` — `"pantheon"` (default) or another host name if the user overrides.
+  - `baseDomain` — the production base domain for the new site (e.g. `www.acme.com`). Used by
+    architecture for canonical URLs and by import for the redirect map and deploy.
+  - `credentialEnvVars` — **names only** of env vars holding host credentials (e.g.
+    `PANTHEON_MACHINE_TOKEN` for Terminus). Never store secret values.
+  - `frontend` — the site that hosts the Next.js app. On Pantheon this is a **Front-End Site**
+    (`kind: "front-end-site"`). Fields: `siteName` (Pantheon machine name), `kind`, `environments`,
+    and `provisioned` (whether it has been created yet).
+  - `cms` — only when `target.contentLayer == "headless-cms"` **and** the CMS is hosted on the same
+    provider (e.g. a Pantheon WordPress/Drupal backend). Same fields as `frontend`, with `kind` =
+    `"wordpress" | "drupal"`. Omit/leave `null` for the file-based (`mdx`) content layer.
 
 ### `phases`
 Each phase has a `status` of `"pending" | "in_progress" | "done" | "failed"`, an `outputs` array of

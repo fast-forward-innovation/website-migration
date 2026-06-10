@@ -54,26 +54,43 @@ None. This skill bootstraps the migration. If `migration/manifest.json` already 
      - **No** → `type: "none"`.
    - Set `frontend.framework` when known. If neither codebase is available, discovery relies on
      API/export data only.
-7. **Capture scope** briefly: base URL of the old site, content types in/out of scope, and any
+7. **Capture hosting for the new site.** Default the host to **Pantheon**; confirm or let the user
+   override `target.hosting.provider`. Prompt for:
+   - **Base domain** — the production domain the new site will live on (e.g. `www.acme.com`) →
+     `target.hosting.baseDomain`. Used later for canonical URLs, the redirect map, and domain setup.
+   - **Front-end site** — the Pantheon **Front-End Site** that will host the Next.js app
+     (`target.hosting.frontend.siteName`, `kind: "front-end-site"`). Default environments
+     `dev/test/live`.
+   - **CMS backend** — only if a headless CMS on Pantheon is likely (architecture confirms later):
+     capture `target.hosting.cms` (siteName, `kind: "wordpress"|"drupal"`); otherwise leave `null`.
+   - Capture the Terminus credential env-var **name** (default `PANTHEON_MACHINE_TOKEN`) in
+     `target.hosting.credentialEnvVars` — never the token value.
+   - **Optional provisioning:** offer to set up the site(s) now with Terminus per
+     `${CLAUDE_PLUGIN_ROOT}/references/targets/pantheon.md`. Since `terminus site:create` /
+     `domain:add` create real infrastructure, **confirm explicitly before running them**; if the user
+     declines or Terminus/token isn't available, just record the config (`provisioned: false`) and
+     note it as a follow-up.
+8. **Capture scope** briefly: base URL of the old site, content types in/out of scope, and any
    hard constraints (launch date, URL-preservation requirements).
-8. **Scaffold** the folder (do not create secret files):
+9. **Scaffold** the folder (do not create secret files):
    ```
    migration/
      manifest.json
      plan.md
      _input/        (only if native-export is used, or for a git source-code checkout)
    ```
-9. **Write `manifest.json`** following the schema, with `phases.plan.status = "done"` and all other
-   phases `"pending"`. Fill `source` (including `architecture` and `codeAccess`), `target` (with
-   `contentLayer: null`), and `project`.
-10. **Write `plan.md`** — the human-readable migration plan (see Outputs).
+10. **Write `manifest.json`** following the schema, with `phases.plan.status = "done"` and all other
+    phases `"pending"`. Fill `source` (including `architecture` and `codeAccess`), `target` (with
+    `contentLayer: null` and `hosting`), and `project`.
+11. **Write `plan.md`** — the human-readable migration plan (see Outputs).
 
 ## Outputs
 
 - `migration/manifest.json` — initialized per `references/manifest-schema.md`.
 - `migration/plan.md` containing:
   - **Summary** — source platform, source architecture (coupled/headless), target, access method(s),
-    source-code access per role (cms/frontend), base URL, scope.
+    source-code access per role (cms/frontend), hosting (provider + base domain + site names), base
+    URL, scope.
   - **Phase sequence** with the recommended order and the skill that runs each:
     `migration-discovery → migration-architecture → migration-export → migration-import`
     (or `migration-full` for export+import) `→ migration-test → migration-summary`.

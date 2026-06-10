@@ -46,7 +46,13 @@ content/config. It maps *out of* the canonical schema, which is what keeps a fut
 6. **Generate supporting structures** the architecture called for: navigation from
    `_site/navigation.json`, taxonomy index data, and SEO metadata wiring (Metadata API), plus
    `sitemap.ts`/`robots.ts` source data if specified.
-7. **Write the report.**
+7. **Deploy (if hosting is configured).** When `target.hosting.provider == "pantheon"`, follow
+   `${CLAUDE_PLUGIN_ROOT}/references/targets/pantheon.md` to push the built site to the Front-End
+   Site (and write CMS records to a Pantheon-hosted backend if `target.hosting.cms` is set), then
+   promote `dev → test`. **Confirm before any `terminus env:deploy` to `live`** — promoting to
+   production is outward-facing. If hosting isn't provisioned yet, record deploy as a follow-up rather
+   than blocking.
+8. **Write the report.**
 
 ## Outputs
 

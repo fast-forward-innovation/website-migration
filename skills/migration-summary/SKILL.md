@@ -25,7 +25,8 @@ produces no new data — it synthesizes.
 
 Aggregate across phases into a single narrative:
 
-1. **Overview** — source platform → Next.js, access method, content layer chosen, dates.
+1. **Overview** — source platform → Next.js, access method, content layer chosen, hosting
+   (provider + base domain + whether sites are provisioned), dates.
 2. **What was migrated** — totals by type (exported vs. imported), assets placed, redirects
    generated. Pull numbers from the export/import reports, not re-counting.
 3. **Quality** — summarize `test-report.md` results (parity, assets, links, build, SEO). If test
