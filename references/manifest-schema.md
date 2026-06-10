@@ -23,12 +23,23 @@ another phase's recorded output paths.
     "accessMethods": ["live-api", "native-export"],
     "credentialEnvVars": ["WP_APP_USER", "WP_APP_PASSWORD"],
     "exportFiles": ["./migration/_input/acme.wordpress.2026-06-01.xml"],
+    "architecture": "headless",
     "codeAccess": {
-      "type": "git",
-      "path": null,
-      "repoUrl": "https://github.com/acme/old-site.git",
-      "ref": "main",
-      "localCheckout": "migration/_input/source-code"
+      "cms": {
+        "type": "git",
+        "path": null,
+        "repoUrl": "https://github.com/acme/old-cms.git",
+        "ref": "main",
+        "localCheckout": "migration/_input/source-code/cms"
+      },
+      "frontend": {
+        "type": "git",
+        "framework": "gatsby",
+        "path": null,
+        "repoUrl": "https://github.com/acme/old-frontend.git",
+        "ref": "main",
+        "localCheckout": "migration/_input/source-code/frontend"
+      }
     },
     "notes": "WPGraphQL not installed; using REST + WXR for ACF fields."
   },
@@ -63,17 +74,28 @@ another phase's recorded output paths.
   secret *values* here.
 - **`exportFiles`** — paths to native dumps/exports (SQL, WXR, Drupal migrate, HubSpot export) the
   user has placed under `migration/_input/`.
-- **`codeAccess`** — whether we have the **source site's codebase** to inspect (themes, custom
-  modules/plugins, field/content-type definitions, templates, routing). `migration-discovery` reads
-  this to decide whether to scan code in addition to API/export data.
-  - `type` — `"none" | "local" | "git"`.
-  - `path` — for `"local"`, the folder to scan (absolute, or relative to the project root). `null`
-    otherwise.
-  - `repoUrl` — for `"git"`, the clone URL. Private repos use the user's existing git credentials;
-    **no tokens are stored here**. `null` otherwise.
-  - `ref` — optional branch/tag/commit to check out (defaults to the repo's default branch).
-  - `localCheckout` — for `"git"`, the path discovery clones/pulls into (default
-    `migration/_input/source-code`); `null` until discovery populates it.
+- **`architecture`** — the shape of the **source** site: `"coupled"` (monolithic — the CMS renders
+  pages via a theme/templates) or `"headless"` (decoupled — a separate frontend app consumes the CMS
+  over an API). Determines whether there are one or two source codebases.
+- **`codeAccess`** — whether we have the **source site's code** to inspect, split by role. Each role
+  is independent (you may have one, both, or neither). `migration-discovery` scans whatever is
+  present; `migration-architecture` reuses frontend findings when the source is already headless.
+  - **`cms`** — the backend CMS code: content-type/field definitions, custom modules/plugins, and
+    (for a `coupled` source) the theme/templates that render pages.
+  - **`frontend`** — the decoupled frontend app (only meaningful when `architecture` is `"headless"`):
+    components, routing, data-fetching, styling. Often the highest-value input, since it can map
+    almost directly onto the new Next.js components.
+  - Each role object has:
+    - `type` — `"none" | "local" | "git"`.
+    - `path` — for `"local"`, the folder to scan (absolute, or relative to the project root). `null`
+      otherwise.
+    - `repoUrl` — for `"git"`, the clone URL. Private repos use the user's existing git credentials;
+      **no tokens are stored here**. `null` otherwise.
+    - `ref` — optional branch/tag/commit to check out (defaults to the repo's default branch).
+    - `framework` (frontend only) — detected/declared frontend framework (e.g. `"next"`, `"gatsby"`,
+      `"nuxt"`, `"react"`, `"vue"`, `"unknown"`).
+    - `localCheckout` — for `"git"`, the path discovery clones/pulls into (default
+      `migration/_input/source-code/<role>`); `null` until discovery populates it.
 
 ### `target`
 - **`platform`** — `"nextjs"` today. (`"wordpress"` is a planned future target.)

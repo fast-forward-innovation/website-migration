@@ -42,7 +42,14 @@ image handling, and i18n.
    content, SSR only for genuinely dynamic pages flagged in discovery).
 6. **Plan images** (where assets land — `public/` vs. CMS/image host — and `next/image` usage) and
    **i18n** if discovery found multiple locales.
-7. **Address the risks/manual items** from discovery (forms, page-builder markup, smart content):
+7. **Reuse the existing frontend when the source is already headless.** If discovery recorded a
+   `frontend` block (`source.architecture == "headless"`), use it: map the old route table to the
+   Next.js route map, port reusable components (the discovery `portability` hint flags React
+   components as low-effort ports vs. Vue/other as rewrites), carry over design tokens/styles, and
+   reuse the recorded `fieldUsage` to keep the new data model lean. Call out a component-level
+   port/rewrite plan. (For a `coupled` source there is no separate frontend — design components from
+   the CMS templates instead.)
+8. **Address the risks/manual items** from discovery (forms, page-builder markup, smart content):
    propose how each is handled in the new site or explicitly defer it to manual follow-up.
 
 ## Outputs

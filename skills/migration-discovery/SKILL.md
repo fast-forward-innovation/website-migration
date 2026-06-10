@@ -25,13 +25,15 @@ design the new site (that's `migration-architecture`).
    `source.credentialEnvVars` are set and a probe request succeeds; for `native-export`, confirm the
    files in `source.exportFiles` / `migration/_input/` exist and parse. Set `phases.discovery` to
    `in_progress`.
-5. **Prepare source-code access** per `source.codeAccess`:
+5. **Prepare source-code access** for each role present in `source.codeAccess` (`cms` and, for a
+   `headless` source, `frontend`):
    - `type: "local"` — confirm `path` exists; you'll scan it in place.
-   - `type: "git"` — clone into `localCheckout` (default `migration/_input/source-code`) if absent,
-     otherwise `git pull` to refresh; check out `ref` if set. Use the user's existing git
+   - `type: "git"` — clone into `localCheckout` (default `migration/_input/source-code/<role>`) if
+     absent, otherwise `git pull` to refresh; check out `ref` if set. Use the user's existing git
      credentials; never store tokens. Record the resolved checkout path back into
-     `source.codeAccess.localCheckout`.
-   - `type: "none"` — skip the code scan; rely on API/export data only.
+     `source.codeAccess.<role>.localCheckout`.
+   - `type: "none"` — skip that role.
+   - If both roles are `none`, rely on API/export data only.
 
 ## Workflow
 
@@ -50,7 +52,7 @@ Follow the platform's discovery checklist in its reference doc. Gather, at minim
   Math/Metatag/HubSpot).
 - **Existing redirects** — current 301s from the SEO/redirect modules.
 
-**If source code is available** (`source.codeAccess.type` is `"local"` or `"git"`), scan it to
+**If the CMS code is available** (`source.codeAccess.cms.type` is `"local"` or `"git"`), scan it to
 corroborate and enrich the above — code is often more authoritative than the API for *structure*:
 - **WordPress** — `functions.php` and plugin files for `register_post_type` / `register_taxonomy`,
   ACF field-group definitions (`acf-json/` or PHP), theme `*-template.php` / block templates,
@@ -61,9 +63,24 @@ corroborate and enrich the above — code is often more authoritative than the A
 - **HubSpot** — the design-manager/CMS theme export: `*.html` + `*.module` templates, `fields.json`
   per module, `theme.json`, and HubL partials.
 
-Use the code to pin down exact field names/types per content type, template→component mappings, and
-custom routing the API may not expose. Record where each finding came from (code vs. API/export) and
-flag any **discrepancies** between them in the report.
+Use it to pin down exact field names/types per content type, template→component mappings, and custom
+routing the API may not expose.
+
+**If the source is headless and the frontend code is available** (`source.codeAccess.frontend`),
+scan it too — for a decoupled site this is where the real UI lives, and it often maps almost directly
+onto the new Next.js build:
+- **Detect the framework** (`package.json` deps: `next`, `gatsby`, `nuxt`, `vue`, plain `react`) and
+  record it in `frontend.framework`.
+- **Routing** — file-based routes (`pages/`, `app/`, Gatsby `gatsby-node.js` `createPages`, Nuxt
+  `pages/`) → the URL map and which content type drives each route.
+- **Data fetching** — how it queries the CMS (GraphQL queries/fragments, REST calls, SDK usage) →
+  exactly which fields each page consumes (a precise field-usage inventory).
+- **Component inventory** — reusable components, layouts, and design tokens that the new Next.js site
+  can reuse or port (note React components as low-effort ports; Vue/other as rewrites).
+- **Config** — env/config for CMS endpoints, image/CDN handling, i18n.
+
+Record where each finding came from (`discoveredVia`: `api` / `export` / `cms-code` /
+`frontend-code`) and flag any **discrepancies** between sources in the report.
 
 Propose a **normalized `type` taxonomy** mapping each source type → a candidate normalized type for
 architecture to confirm.
@@ -74,11 +91,20 @@ architecture to confirm.
   ```json
   {
     "source": "wordpress",
-    "codeScanned": true,
+    "sourceArchitecture": "headless",
+    "codeScanned": { "cms": true, "frontend": true },
+    "frontend": {
+      "framework": "gatsby",
+      "routes": [{ "path": "/blog/:slug", "type": "post", "from": "gatsby-node.js" }],
+      "components": ["PostHero", "Prose", "TagList"],
+      "dataLayer": "graphql",
+      "fieldUsage": { "post": ["title", "slug", "body", "heroImage", "tags"] },
+      "portability": "react-reusable"
+    },
     "contentTypes": [{
       "sourceType": "post", "proposedType": "article", "count": 182,
       "fields": [{ "name": "subtitle", "type": "text", "from": "acf" }],
-      "templates": ["single.php"], "discoveredVia": ["api", "code"]
+      "templates": ["single.php"], "discoveredVia": ["api", "cms-code", "frontend-code"]
     }],
     "taxonomies": { "category": 9, "tag": 140 },
     "authors": 6,
