@@ -1,0 +1,15 @@
+{
+  "name": "fastforward",
+  "owner": {
+    "name": "FastForward",
+    "email": "jason@fastforward.sh"
+  },
+  "description": "Internal FastForward Claude Code plugins.",
+  "plugins": [
+    {
+      "name": "website-migration",
+      "source": ".",
+      "description": "Drive a website migration end-to-end off Drupal, WordPress, or HubSpot onto Next.js."
+    }
+  ]
+}

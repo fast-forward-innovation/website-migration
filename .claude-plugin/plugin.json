@@ -1,0 +1,19 @@
+{
+  "name": "website-migration",
+  "version": "0.1.0",
+  "description": "Drive a website migration end-to-end: plan, discover, architect, export, import, test, and summarize a move off Drupal, WordPress, or HubSpot onto Next.js. Each skill hands off through a shared migration/ folder governed by a single manifest.json.",
+  "author": {
+    "name": "Jason Yarrington",
+    "email": "jason@fastforward.sh"
+  },
+  "keywords": [
+    "migration",
+    "drupal",
+    "wordpress",
+    "hubspot",
+    "nextjs",
+    "cms",
+    "content-migration"
+  ],
+  "license": "MIT"
+}
