@@ -1,0 +1,46 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  structure:
+    name: Structural validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test deps
+        run: pip install -r tests/requirements.txt
+      - name: Run structural tests
+        run: pytest tests/test_structure.py -v
+
+  behavioral:
+    name: Behavioral eval (fixture)
+    runs-on: ubuntu-latest
+    needs: structure
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLAUDE_TEST_MODEL: sonnet
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test deps
+        run: pip install -r tests/requirements.txt
+      # The steps below are skipped automatically on PRs from forks (no secret),
+      # so the behavioral eval never blocks external contributors.
+      - name: Install Claude Code CLI
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Run behavioral test
+        if: ${{ env.ANTHROPIC_API_KEY != '' }}
+        run: pytest tests/test_behavioral.py -v -m behavioral
+      - name: Note when skipped
+        if: ${{ env.ANTHROPIC_API_KEY == '' }}
+        run: echo "ANTHROPIC_API_KEY secret not set — behavioral eval skipped."

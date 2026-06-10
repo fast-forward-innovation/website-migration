@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Minimal WordPress eXtended RSS (WXR) fixture for offline behavioral tests.
+     Expected discovery: post=2, page=1, attachment=1, categories=2, tags=1, authors=1. -->
+<rss version="2.0"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xmlns:wp="http://wordpress.org/export/1.2/">
+<channel>
+  <title>Acme Sample</title>
+  <link>https://old.acme.example</link>
+  <description>Fixture site for website-migration plugin tests</description>
+  <wp:wxr_version>1.2</wp:wxr_version>
+  <wp:base_site_url>https://old.acme.example</wp:base_site_url>
+  <wp:base_blog_url>https://old.acme.example</wp:base_blog_url>
+
+  <wp:author>
+    <wp:author_id>1</wp:author_id>
+    <wp:author_login><![CDATA[dana]]></wp:author_login>
+    <wp:author_email><![CDATA[dana@acme.example]]></wp:author_email>
+    <wp:author_display_name><![CDATA[Dana Lee]]></wp:author_display_name>
+  </wp:author>
+
+  <wp:category>
+    <wp:term_id>2</wp:term_id>
+    <wp:category_nicename><![CDATA[engineering]]></wp:category_nicename>
+    <wp:cat_name><![CDATA[Engineering]]></wp:cat_name>
+  </wp:category>
+  <wp:category>
+    <wp:term_id>3</wp:term_id>
+    <wp:category_nicename><![CDATA[company]]></wp:category_nicename>
+    <wp:cat_name><![CDATA[Company]]></wp:cat_name>
+  </wp:category>
+  <wp:tag>
+    <wp:term_id>4</wp:term_id>
+    <wp:tag_slug><![CDATA[performance]]></wp:tag_slug>
+    <wp:tag_name><![CDATA[performance]]></wp:tag_name>
+  </wp:tag>
+
+  <item>
+    <title>Cutting build times in half</title>
+    <link>https://old.acme.example/blog/cut-build-times</link>
+    <dc:creator><![CDATA[dana]]></dc:creator>
+    <content:encoded><![CDATA[<p>We reduced CI time by parallelizing the test suite.</p>]]></content:encoded>
+    <wp:post_id>101</wp:post_id>
+    <wp:post_date><![CDATA[2025-03-05 09:00:00]]></wp:post_date>
+    <wp:post_name><![CDATA[cut-build-times]]></wp:post_name>
+    <wp:status><![CDATA[publish]]></wp:status>
+    <wp:post_type><![CDATA[post]]></wp:post_type>
+    <category domain="category" nicename="engineering"><![CDATA[Engineering]]></category>
+    <category domain="post_tag" nicename="performance"><![CDATA[performance]]></category>
+  </item>
+
+  <item>
+    <title>Welcome to our new blog</title>
+    <link>https://old.acme.example/blog/welcome</link>
+    <dc:creator><![CDATA[dana]]></dc:creator>
+    <content:encoded><![CDATA[<p>Hello world. This is our first post.</p>]]></content:encoded>
+    <wp:post_id>102</wp:post_id>
+    <wp:post_date><![CDATA[2025-02-01 12:00:00]]></wp:post_date>
+    <wp:post_name><![CDATA[welcome]]></wp:post_name>
+    <wp:status><![CDATA[publish]]></wp:status>
+    <wp:post_type><![CDATA[post]]></wp:post_type>
+    <category domain="category" nicename="company"><![CDATA[Company]]></category>
+  </item>
+
+  <item>
+    <title>About Acme</title>
+    <link>https://old.acme.example/about</link>
+    <dc:creator><![CDATA[dana]]></dc:creator>
+    <content:encoded><![CDATA[<p>Acme builds delightful software.</p>]]></content:encoded>
+    <wp:post_id>200</wp:post_id>
+    <wp:post_date><![CDATA[2024-11-01 12:00:00]]></wp:post_date>
+    <wp:post_name><![CDATA[about]]></wp:post_name>
+    <wp:status><![CDATA[publish]]></wp:status>
+    <wp:post_type><![CDATA[page]]></wp:post_type>
+  </item>
+
+  <item>
+    <title>hero.png</title>
+    <link>https://old.acme.example/hero.png</link>
+    <wp:post_id>300</wp:post_id>
+    <wp:post_name><![CDATA[hero]]></wp:post_name>
+    <wp:status><![CDATA[inherit]]></wp:status>
+    <wp:post_type><![CDATA[attachment]]></wp:post_type>
+    <wp:attachment_url><![CDATA[https://old.acme.example/wp-content/uploads/2025/03/hero.png]]></wp:attachment_url>
+  </item>
+
+</channel>
+</rss>

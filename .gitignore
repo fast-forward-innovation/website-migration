@@ -3,3 +3,8 @@
 
 # Runtime migration artifacts (created in target projects, not here)
 migration/
+
+# Python / pytest
+__pycache__/
+.pytest_cache/
+*.pyc
