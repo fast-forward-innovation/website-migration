@@ -23,6 +23,13 @@ another phase's recorded output paths.
     "accessMethods": ["live-api", "native-export"],
     "credentialEnvVars": ["WP_APP_USER", "WP_APP_PASSWORD"],
     "exportFiles": ["./migration/_input/acme.wordpress.2026-06-01.xml"],
+    "codeAccess": {
+      "type": "git",
+      "path": null,
+      "repoUrl": "https://github.com/acme/old-site.git",
+      "ref": "main",
+      "localCheckout": "migration/_input/source-code"
+    },
     "notes": "WPGraphQL not installed; using REST + WXR for ACF fields."
   },
   "target": {
@@ -56,6 +63,17 @@ another phase's recorded output paths.
   secret *values* here.
 - **`exportFiles`** — paths to native dumps/exports (SQL, WXR, Drupal migrate, HubSpot export) the
   user has placed under `migration/_input/`.
+- **`codeAccess`** — whether we have the **source site's codebase** to inspect (themes, custom
+  modules/plugins, field/content-type definitions, templates, routing). `migration-discovery` reads
+  this to decide whether to scan code in addition to API/export data.
+  - `type` — `"none" | "local" | "git"`.
+  - `path` — for `"local"`, the folder to scan (absolute, or relative to the project root). `null`
+    otherwise.
+  - `repoUrl` — for `"git"`, the clone URL. Private repos use the user's existing git credentials;
+    **no tokens are stored here**. `null` otherwise.
+  - `ref` — optional branch/tag/commit to check out (defaults to the repo's default branch).
+  - `localCheckout` — for `"git"`, the path discovery clones/pulls into (default
+    `migration/_input/source-code`); `null` until discovery populates it.
 
 ### `target`
 - **`platform`** — `"nextjs"` today. (`"wordpress"` is a planned future target.)

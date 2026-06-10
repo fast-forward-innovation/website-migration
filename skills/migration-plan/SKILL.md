@@ -35,24 +35,35 @@ None. This skill bootstraps the migration. If `migration/manifest.json` already 
    files under `migration/_input/` and record their paths. For `live-api`, capture the **env-var
    names** that will hold credentials (never the secret values) — see the relevant
    `${CLAUDE_PLUGIN_ROOT}/references/sources/<platform>.md`.
-5. **Capture scope** briefly: base URL of the old site, content types in/out of scope, and any
+5. **Ask about source-code access.** Ask: *"Do you have access to the source site's codebase
+   (theme, custom modules/plugins, field/content-type definitions, templates)? It greatly improves
+   discovery and architecture."* Capture into `source.codeAccess`:
+   - **Local folder** → `type: "local"`, `path: <folder>`. Confirm the path exists. Discovery will
+     scan it in place.
+   - **Git repository** → `type: "git"`, `repoUrl: <url>`, optional `ref: <branch/tag>`,
+     `localCheckout: "migration/_input/source-code"`. Discovery will clone/pull it (using the user's
+     existing git credentials — **do not store tokens**) and examine it.
+   - **No** → `type: "none"`. Discovery relies on API/export data only.
+6. **Capture scope** briefly: base URL of the old site, content types in/out of scope, and any
    hard constraints (launch date, URL-preservation requirements).
-6. **Scaffold** the folder (do not create secret files):
+7. **Scaffold** the folder (do not create secret files):
    ```
    migration/
      manifest.json
      plan.md
-     _input/        (only if native-export is used)
+     _input/        (only if native-export is used, or for a git source-code checkout)
    ```
-7. **Write `manifest.json`** following the schema, with `phases.plan.status = "done"` and all other
-   phases `"pending"`. Fill `source`, `target` (with `contentLayer: null`), and `project`.
-8. **Write `plan.md`** — the human-readable migration plan (see Outputs).
+8. **Write `manifest.json`** following the schema, with `phases.plan.status = "done"` and all other
+   phases `"pending"`. Fill `source` (including `codeAccess`), `target` (with `contentLayer: null`),
+   and `project`.
+9. **Write `plan.md`** — the human-readable migration plan (see Outputs).
 
 ## Outputs
 
 - `migration/manifest.json` — initialized per `references/manifest-schema.md`.
 - `migration/plan.md` containing:
-  - **Summary** — source platform, target, access method(s), base URL, scope.
+  - **Summary** — source platform, target, access method(s), source-code access (none/local/git),
+    base URL, scope.
   - **Phase sequence** with the recommended order and the skill that runs each:
     `migration-discovery → migration-architecture → migration-export → migration-import`
     (or `migration-full` for export+import) `→ migration-test → migration-summary`.

@@ -25,6 +25,13 @@ design the new site (that's `migration-architecture`).
    `source.credentialEnvVars` are set and a probe request succeeds; for `native-export`, confirm the
    files in `source.exportFiles` / `migration/_input/` exist and parse. Set `phases.discovery` to
    `in_progress`.
+5. **Prepare source-code access** per `source.codeAccess`:
+   - `type: "local"` — confirm `path` exists; you'll scan it in place.
+   - `type: "git"` — clone into `localCheckout` (default `migration/_input/source-code`) if absent,
+     otherwise `git pull` to refresh; check out `ref` if set. Use the user's existing git
+     credentials; never store tokens. Record the resolved checkout path back into
+     `source.codeAccess.localCheckout`.
+   - `type: "none"` — skip the code scan; rely on API/export data only.
 
 ## Workflow
 
@@ -43,6 +50,21 @@ Follow the platform's discovery checklist in its reference doc. Gather, at minim
   Math/Metatag/HubSpot).
 - **Existing redirects** — current 301s from the SEO/redirect modules.
 
+**If source code is available** (`source.codeAccess.type` is `"local"` or `"git"`), scan it to
+corroborate and enrich the above — code is often more authoritative than the API for *structure*:
+- **WordPress** — `functions.php` and plugin files for `register_post_type` / `register_taxonomy`,
+  ACF field-group definitions (`acf-json/` or PHP), theme `*-template.php` / block templates,
+  `rewrite` rules, and `theme.json`.
+- **Drupal** — config YAML under `config/sync/` (`node.type.*`, `field.field.*`,
+  `taxonomy.vocabulary.*`, `core.entity_view_display.*`), custom module `*.routing.yml`, and theme
+  `*.html.twig` templates.
+- **HubSpot** — the design-manager/CMS theme export: `*.html` + `*.module` templates, `fields.json`
+  per module, `theme.json`, and HubL partials.
+
+Use the code to pin down exact field names/types per content type, template→component mappings, and
+custom routing the API may not expose. Record where each finding came from (code vs. API/export) and
+flag any **discrepancies** between them in the report.
+
 Propose a **normalized `type` taxonomy** mapping each source type → a candidate normalized type for
 architecture to confirm.
 
@@ -52,7 +74,12 @@ architecture to confirm.
   ```json
   {
     "source": "wordpress",
-    "contentTypes": [{ "sourceType": "post", "proposedType": "article", "count": 182 }],
+    "codeScanned": true,
+    "contentTypes": [{
+      "sourceType": "post", "proposedType": "article", "count": 182,
+      "fields": [{ "name": "subtitle", "type": "text", "from": "acf" }],
+      "templates": ["single.php"], "discoveredVia": ["api", "code"]
+    }],
     "taxonomies": { "category": 9, "tag": 140 },
     "authors": 6,
     "media": { "count": 1240, "approxBytes": 3100000000, "uploadScheme": "/wp-content/uploads/YYYY/MM/" },
@@ -70,7 +97,8 @@ architecture to confirm.
 
 ## Guardrails
 
-- Read-only against the source — don't modify the old site.
+- Read-only against the source — don't modify the old site, and treat a local or cloned codebase as
+  read-only too (clone/pull only; never push or edit it).
 - Don't download the full media library here; count and sample only (export does the downloading).
 - If access partially fails (e.g. drafts need auth you don't have), record the gap in the report and
   inventory `warnings` rather than silently undercounting.
