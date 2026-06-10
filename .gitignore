@@ -1,0 +1,5 @@
+# Local Claude Code session settings — not part of the plugin
+.claude/
+
+# Runtime migration artifacts (created in target projects, not here)
+migration/
